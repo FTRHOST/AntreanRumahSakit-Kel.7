@@ -2,6 +2,11 @@
 
 Sistem ini adalah aplikasi manajemen antrean rumah sakit berbasis Python yang mengimplementasikan berbagai struktur data fundamental dan algoritma penjadwalan. Aplikasi ini dirancang untuk mengelola pasien berdasarkan tingkat urgensi menggunakan metode **Weighted Round Robin**.
 
+oleh:
+1. Azis Khoirul Setiawan (43050250004)
+2. Miftakhul Anwar (43050250010)
+3. Muhammad Fathir Al Faruq (43050250011)
+
 ## 🚀 Fitur Utama
 
 1.  **Multi-Queue Management**: Memisahkan antrean menjadi tiga kategori: Urgent, Prioritas, dan Reguler.
