@@ -15,6 +15,11 @@ class SistemAntreanRS:
         
         self.counter = 1 
         
+        # 4. ALGORITMA WEIGHTED ROUND ROBIN (Rasio 3:2:1)
+        self.kuota_urgent = 3
+        self.kuota_prioritas = 2
+        self.kuota_reguler = 1
+
     def tambah_antrean(self, nama, umur, kategori):
         id_antrean = f"{kategori[0].upper()}-{self.counter:03d}"
         self.counter += 1
@@ -39,21 +44,49 @@ class SistemAntreanRS:
         print(f"\n✅ Berhasil! Pasien '{nama}' mendapat ID Antrean: {id_antrean}")
 
     def panggil_pasien(self):
-        id_panggilan = None
+        """Fitur Panggilan dengan Algoritma Weighted Round Robin (Rasio 3:2:1)"""
         
-        if len(self.queue_urgent) > 0:
-            id_panggilan = self.queue_urgent.pop(0)
-        elif len(self.queue_prioritas) > 0:
-            id_panggilan = self.queue_prioritas.pop(0)
-        elif len(self.queue_reguler) > 0:
-            id_panggilan = self.queue_reguler.pop(0)
-        else:
+        # Cek apakah SEMUA antrean benar-benar kosong
+        if len(self.queue_urgent) == 0 and len(self.queue_prioritas) == 0 and len(self.queue_reguler) == 0:
             print("\n📭 Tidak ada antrean saat ini.")
+            # Reset kuota untuk berjaga-jaga jika nanti ada pasien baru yang masuk
+            self.kuota_urgent = 3
+            self.kuota_prioritas = 2
+            self.kuota_reguler = 1
             return
             
+        id_panggilan = None
+        
+        # --- PROSES PEMILIHAN BERDASARKAN KUOTA ---
+        if self.kuota_urgent > 0 and len(self.queue_urgent) > 0:
+            id_panggilan = self.queue_urgent.pop(0)
+            self.kuota_urgent -= 1
+            
+        elif self.kuota_prioritas > 0 and len(self.queue_prioritas) > 0:
+            id_panggilan = self.queue_prioritas.pop(0)
+            self.kuota_prioritas -= 1
+            
+        elif self.kuota_reguler > 0 and len(self.queue_reguler) > 0:
+            id_panggilan = self.queue_reguler.pop(0)
+            self.kuota_reguler -= 1
+            
+        else:
+            # Jika kode sampai di sini, berarti kuota tersisa hanya untuk antrean yang sudah KOSONG,
+            # atau semua kuota sudah habis (0). 
+            # Maka, kita harus me-RESET siklusnya kembali ke 3:2:1.
+            self.kuota_urgent = 3
+            self.kuota_prioritas = 2
+            self.kuota_reguler = 1
+            
+            # Panggil fungsi ini lagi secara rekursif (berulang) dengan kuota yang sudah penuh
+            self.panggil_pasien()
+            return
+
+        # --- TAMPILKAN OUTPUT ---
         pasien = self.database_pasien[id_panggilan]
         print(f"\n📢 PANGGILAN PASIEN:")
         print(f"   Mohon perhatian, pasien dengan ID {pasien['id']} atas nama {pasien['nama']}")
+        print(f"   [Kategori: {pasien['kategori']}]")
         print(f"   Silakan menuju ke ruang pemeriksaan.")
         
         self.riwayat_panggilan.append(id_panggilan)
@@ -174,7 +207,7 @@ class SistemAntreanRS:
             print(f"\n❌ Gagal! Data dengan ID {id_antrean} tidak ditemukan di sistem atau sudah dipanggil.")
 
     def lihat_riwayat(self):
-        print("\n=== RIWAYAT PANGGILAN TERBARU ===")
+        print("\n=== RIWAYAT PANGGILAN TERBARU PALING ATAS ===")
         if not self.riwayat_panggilan:
             print("   Belum ada pasien yang dipanggil.")
             print("=================================")
