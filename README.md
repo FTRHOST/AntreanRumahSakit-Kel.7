@@ -66,55 +66,91 @@ graph TD
     Y --> Z([Selesai])
 ```
 
-## 📊 Flowchart Sistem Secara Umum
+## 📊 Flowchart Sistem
+
+Untuk memudahkan pemahaman, flowchart sistem dibagi menjadi beberapa bagian utama:
+
+### 1. Alur Menu Utama
+Menunjukkan navigasi utama dalam aplikasi.
 
 ```mermaid
 graph TD
     A([Mulai]) --> B{Menu Utama}
     
-    B -->|1| C[Tambah Pasien]
-    C --> C1[Input Nama & Umur]
-    C1 --> C2[Pilih Kategori: Urgent/Prioritas/Reguler]
-    C2 --> C3[Generate ID & Simpan ke Hash Table]
-    C3 --> C4[Masukkan ID ke Queue Terkait]
-    C4 --> B
-
-    B -->|2| D{Panggil Pasien}
-    D --> D1{Cek Antrean & Kuota}
-    D1 -->|Ada| D2[Ambil Pasien sesuai Rasio WRR 3:2:1]
-    D2 --> D3[Pindahkan ke Riwayat Stack]
-    D3 --> D4[Tampilkan Panggilan]
-    D1 -->|Kosong| D5[Tampilkan Pesan Kosong]
-    D4 --> B
-    D5 --> B
-
-    B -->|3| E[Tampilkan Daftar Antrean]
-    E --> B
-
-    B -->|4| F[Cari Pasien via ID]
-    F --> F1{Cek di Hash Table}
-    F1 -->|Ditemukan| F2[Tampilkan Detail Pasien]
-    F1 -->|Tidak Ada| F3[Pesan Error]
-    F2 --> B
-    F3 --> B
-
-    B -->|5| G[Lihat Riwayat Panggilan]
-    G --> B
-
-    B -->|6| H[Edit Data Pasien]
-    H --> H1[Input ID Antrean]
-    H1 --> H2{Ganti Kategori?}
-    H2 -->|Ya| H3[Hapus ID Lama dari Queue & Hash Table]
-    H3 --> H4[Generate ID Baru & Masukkan ke Queue Baru]
-    H2 -->|Tidak| H5[Update Nama/Umur Saja]
-    H4 --> B
-    H5 --> B
-
-    B -->|7| I[Batalkan Antrean]
-    I --> I1[Hapus dari Queue & Hash Table]
-    I1 --> B
-
+    B -->|1| C[[Registrasi Pasien]]
+    B -->|2| D[[Proses Panggilan]]
+    B -->|3| E[Tampilkan Antrean]
+    B -->|4| F[[Pencarian Data]]
+    B -->|5| G[Lihat Riwayat]
+    B -->|6| H[[Edit Data Pasien]]
+    B -->|7| I[[Batalkan Antrean]]
     B -->|0| J([Keluar])
+
+    C --> B
+    D --> B
+    E --> B
+    F --> B
+    G --> B
+    H --> B
+    I --> B
+```
+
+### 2. Alur Manajemen Pasien (Tambah & Batalkan)
+Detail proses pendaftaran pasien baru dan pembatalan antrean.
+
+```mermaid
+graph LR
+    subgraph Tambah_Pasien
+    C1[Input Nama & Umur] --> C2[Pilih Kategori]
+    C2 --> C3[Generate ID & Simpan ke Hash Table]
+    C3 --> C4[Masukkan ID ke Queue]
+    end
+
+    subgraph Batalkan_Antrean
+    I1[Input ID Antrean] --> I2[Cek di Hash Table]
+    I2 -->|Ada| I3[Hapus dari Queue & Hash Table]
+    I2 -->|Tidak| I4[Pesan Error]
+    end
+```
+
+### 3. Alur Operasi Data (Cari & Edit)
+Detail proses pencarian dan pembaruan data pasien.
+
+```mermaid
+graph TD
+    subgraph Cari_Pasien
+    F1[Input ID] --> F2{Cek Hash Table}
+    F2 -->|Ditemukan| F3[Tampilkan Detail]
+    F2 -->|Tidak| F4[Pesan Error]
+    end
+
+    subgraph Edit_Pasien
+    H1[Input ID] --> H2{Cek Data}
+    H2 -->|Ada| H3{Ubah Kategori?}
+    H3 -->|Ya| H4[Hapus ID Lama, Generate ID Baru]
+    H3 -->|Tidak| H5[Update Nama/Umur Saja]
+    H4 --> H6[Update Queue & Hash Table]
+    H5 --> H6
+    H2 -->|Tidak| H7[Pesan Error]
+    end
+```
+
+### 4. Alur Panggilan (Weighted Round Robin)
+Proses pemanggilan pasien berdasarkan prioritas rasio 3:2:1.
+
+```mermaid
+graph TD
+    D_Start[Mulai Panggilan] --> D1{Cek Semua Queue}
+    D1 -- Kosong --> D2[Tampilkan Pesan Kosong]
+    D1 -- Ada Isi --> D3{Cek Kuota & Queue}
+    
+    D3 -- Sesuai Rasio --> D4[Ambil Pasien terdepan]
+    D4 --> D5[Kurangi Kuota Kategori]
+    D5 --> D6[Pindahkan ke Riwayat Stack]
+    D6 --> D7[Tampilkan Panggilan]
+    
+    D3 -- Kuota Habis --> D8[Reset Kuota ke 3:2:1]
+    D8 --> D_Start
 ```
 
 ## 💻 Cara Menjalankan
